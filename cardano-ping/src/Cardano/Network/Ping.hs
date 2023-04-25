@@ -448,9 +448,11 @@ pingClient stdout stderr PingOpts{pingOptsQuiet, pingOptsJson, pingOptsCount, pi
             eprint $ printf "%s Version negotiation error %s\n" peerStr err
           Right version -> do
             unless pingOptsQuiet $ printf "%s Negotiated version %s\n" peerStr (show version)
-            keepAlive bearer timeoutfn peerStr version (tdigest []) 0
-            -- send terminating message
-            _ <- write bearer timeoutfn $ wrap keepaliveNum InitiatorDir (keepAliveDone version)
+            unless pingOptsHandshakeQuery $ do
+              keepAlive bearer timeoutfn peerStr version (tdigest []) 0
+              -- send terminating message
+              _ <- write bearer timeoutfn $ wrap keepaliveNum InitiatorDir (keepAliveDone version)
+              return ()
             -- protocol idle timeout
             MT.threadDelay 5
 
